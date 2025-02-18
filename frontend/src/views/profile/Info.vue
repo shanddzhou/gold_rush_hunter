@@ -47,6 +47,7 @@ import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getCurrentUser, updateProfile } from '@/api/users'
 import { useStore } from 'vuex'
+import { formatPhone } from '@/utils/format'
 
 const store = useStore()
 const formRef = ref(null)
@@ -79,6 +80,7 @@ const headers = {
 // 获取用户信息
 const fetchUserInfo = async () => {
   try {
+    loading.value = true
     const user = await getCurrentUser()
     form.value = {
       username: user.username,
@@ -87,8 +89,9 @@ const fetchUserInfo = async () => {
       avatar: user.avatar || ''
     }
   } catch (error) {
-    console.error('Failed to fetch user info:', error)
     ElMessage.error('获取用户信息失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -100,12 +103,15 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     loading.value = true
     
-    await updateProfile(form.value)
+    const { user } = await updateProfile({
+      email: form.value.email,
+      phone: form.value.phone
+    })
+    
     ElMessage.success('保存成功')
     // 更新 Vuex 中的用户信息
-    store.dispatch('setUser', form.value)
+    store.dispatch('setUser', user)
   } catch (error) {
-    console.error('Failed to update profile:', error)
     ElMessage.error(error.response?.data?.message || '保存失败')
   } finally {
     loading.value = false

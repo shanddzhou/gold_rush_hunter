@@ -43,9 +43,11 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { changePassword } from '@/api/users'
 
 const router = useRouter()
+const store = useStore()
 const formRef = ref(null)
 const loading = ref(false)
 
@@ -65,6 +67,15 @@ const validateConfirmPassword = (rule, value, callback) => {
   }
 }
 
+// 验证新密码不能与当前密码相同
+const validateNewPassword = (rule, value, callback) => {
+  if (value === form.value.oldPassword) {
+    callback(new Error('新密码不能与当前密码相同'))
+  } else {
+    callback()
+  }
+}
+
 // 表单验证规则
 const rules = {
   oldPassword: [
@@ -72,7 +83,8 @@ const rules = {
   ],
   newPassword: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能小于6位', trigger: 'blur' }
+    { min: 6, message: '密码长度不能小于6位', trigger: 'blur' },
+    { validator: validateNewPassword, trigger: 'blur' }
   ],
   confirmPassword: [
     { required: true, message: '请确认新密码', trigger: 'blur' },
@@ -88,13 +100,18 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     loading.value = true
     
-    await changePassword(form.value)
+    await changePassword({
+      oldPassword: form.value.oldPassword,
+      newPassword: form.value.newPassword
+    })
+    
     ElMessage.success('密码修改成功，请重新登录')
-    // 清除登录状态，跳转到登录页
+    // 清除登录状态
+    store.dispatch('clearUser')
     localStorage.removeItem('token')
+    // 跳转到登录页
     router.push('/login')
   } catch (error) {
-    console.error('Failed to change password:', error)
     ElMessage.error(error.response?.data?.message || '密码修改失败')
   } finally {
     loading.value = false
