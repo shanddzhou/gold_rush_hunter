@@ -1,23 +1,24 @@
 <template>
-  <router-view></router-view>
+  <el-config-provider :locale="zhCn">
+    <router-view></router-view>
+  </el-config-provider>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
-import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { ElConfigProvider } from 'element-plus'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 
-const store = useStore()
 const router = useRouter()
+const userStore = useUserStore()
 
 onMounted(() => {
-  // 尝试从 localStorage 恢复用户信息
-  store.dispatch('restoreUser')
-  
-  // 如果有 token 但没有用户信息，则清除 token
+  // 检查 token 和用户信息
   const token = localStorage.getItem('token')
-  if (token && !store.state.user) {
-    localStorage.removeItem('token')
+  if (token && !userStore.user) {
+    userStore.clearUser()
     router.push('/login')
   }
 })

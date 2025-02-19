@@ -1,42 +1,27 @@
 import axios from 'axios'
-import logger from './logger'
-import errorHandler from './error-handler'
 import { ElMessage } from 'element-plus'
-import store from '@/store'
 import router from '@/router'
+import { useUserStore } from '@/stores/user'
 
 // 创建 axios 实例
 const service = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 30000,
-  withCredentials: true,  // 允许携带认证信息
+  withCredentials: true,  // 允许跨域携带 cookie
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
   }
 })
 
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    // 记录请求信息
-    logger.info('API Request', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      data: config.data
-    })
-    
     // 添加 token
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`
     }
-    
-    // 确保 OPTIONS 请求也带上正确的 headers
-    if (config.method === 'options') {
-      config.headers['Access-Control-Request-Method'] = 'POST'
-      config.headers['Access-Control-Request-Headers'] = 'content-type'
-    }
-    
     return config
   },
   error => {
@@ -49,11 +34,15 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => response.data,
   error => {
+    console.error('Response error:', error)
+    
     if (error.response?.status === 401) {
-      // token 失效，清除用户信息和 token
-      store.dispatch('clearUser')
+      const userStore = useUserStore()
+      userStore.clearUser()
       router.push('/login')
     }
+    
+    ElMessage.error(error.response?.data?.message || '请求失败')
     return Promise.reject(error)
   }
 )

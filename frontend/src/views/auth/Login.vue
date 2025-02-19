@@ -57,15 +57,15 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { login } from '@/api/auth'
+import { useUserStore } from '@/stores/user'
+import { login, getInfo } from '@/api/auth'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import { startSessionMonitor } from '@/utils/auth'
 
-const store = useStore()
 const router = useRouter()
+const userStore = useUserStore()
 const formRef = ref(null)
 const loading = ref(false)
 
@@ -95,13 +95,12 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     loading.value = true
     
-    const { token, user } = await login(form.value)
+    const { token } = await login(form.value)
+    userStore.setToken(token)
     
-    // 保存 token
-    localStorage.setItem('token', token)
-    
-    // 保存用户信息到 Vuex 和 localStorage
-    store.dispatch('setUser', user)
+    // 获取用户信息
+    const userInfo = await getInfo()
+    userStore.setUser(userInfo)
     
     // 启动会话监控
     startSessionMonitor()
@@ -110,7 +109,7 @@ const handleSubmit = async () => {
     router.push('/')
   } catch (error) {
     console.error('Login failed:', error)
-    ElMessage.error(error.message || '登录失败')
+    ElMessage.error(error.response?.data?.message || '登录失败')
   } finally {
     loading.value = false
   }

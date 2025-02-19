@@ -1,3 +1,4 @@
+```markdown:README.md
 # GoldRush Hunter 量化交易系统
 
 ## 项目简介
@@ -10,12 +11,9 @@ GoldRush Hunter 是一个基于 Python Flask 和 Vue.js 的量化交易系统，
 - Python 3.8+
 - Flask 框架
 - SQLAlchemy ORM
-- PostgreSQL 数据库
+- PostgreSQL/MySQL 数据库
 - JWT 认证
 - RESTful API
-- Redis 缓存
-- Celery 任务队列
-- APScheduler 定时任务
 
 ### 前端
 - Vue 3
@@ -23,8 +21,6 @@ GoldRush Hunter 是一个基于 Python Flask 和 Vue.js 的量化交易系统，
 - Vuex 状态管理
 - Vue Router
 - Axios HTTP 客户端
-- ECharts 图表库
-- Socket.IO 实时通信
 
 ## 功能特性
 
@@ -35,38 +31,28 @@ GoldRush Hunter 是一个基于 Python Flask 和 Vue.js 的量化交易系统，
    - 个人信息管理
    - 密码修改
    - 头像上传
-   - 登录限制和保护
 
 2. 权限管理
    - 基于角色的权限系统
    - 权限配置
    - 角色分配
-   - 操作日志审计
 
 3. 系统管理
    - 用户管理
    - 角色管理
    - 邀请码管理
    - 系统监控
-   - 资源使用统计
-   - 性能监控
-   - 定时任务管理
 
 ### 开发中功能
 1. 交易功能
    - 策略管理
    - 持仓管理
    - 订单管理
-   - 风险控制
-   - 资金管理
 
 2. 数据分析
    - 市场数据
    - 交易数据
    - 绩效分析
-   - 实时监控
-   - 历史回测
-   - 策略优化
 
 ## 项目结构
 
@@ -77,10 +63,7 @@ goldrush-hunter/
 │   │   ├── api/          # API 接口
 │   │   ├── models/       # 数据模型
 │   │   ├── services/     # 业务逻辑
-│   │   ├── utils/        # 工具函数
-│   │   ├── tasks/        # Celery 任务
-│   │   ├── schedulers/   # 定时任务
-│   │   └── websockets/   # WebSocket 服务
+│   │   └── utils/        # 工具函数
 │   ├── migrations/       # 数据库迁移
 │   ├── tests/           # 测试用例
 │   ├── .env.example     # 环境变量示例
@@ -106,7 +89,6 @@ goldrush-hunter/
 
 ### 后端
 
-#### 基础环境
 1. 创建虚拟环境
 ```bash
 python -m venv venv
@@ -114,36 +96,26 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 ```
 
-#### 依赖服务
-1. 安装并启动 Redis
+2. 安装依赖
 ```bash
-# Ubuntu/Debian
-sudo apt-get install redis-server
-sudo systemctl start redis
-
-# CentOS
-sudo yum install redis
-sudo systemctl start redis
-
-# macOS
-brew install redis
-brew services start redis
+cd backend
+pip install -r requirements.txt
 ```
 
-2. 安装并配置 PostgreSQL
+3. 配置环境变量
 ```bash
-# Ubuntu/Debian
-sudo apt-get install postgresql postgresql-contrib
-sudo systemctl start postgresql
+cp .env.example .env
+# 编辑 .env 文件，配置必要的环境变量
+```
 
-# CentOS
-sudo yum install postgresql-server postgresql-contrib
-sudo postgresql-setup initdb
-sudo systemctl start postgresql
+4. 初始化数据库
+```bash
+flask db upgrade
+```
 
-# macOS
-brew install postgresql
-brew services start postgresql
+5. 运行开发服务器
+```bash
+flask run
 ```
 
 ### 前端
@@ -195,31 +167,7 @@ gunicorn -w 4 -b 0.0.0.0:5000 "app:create_app()"
 npm run build
 ```
 
-2. Nginx 配置示例
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        root /path/to/dist;
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api {
-        proxy_pass http://localhost:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    location /socket.io {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
+2. 部署 dist 目录到 Web 服务器
 
 ## 开发规范
 
@@ -272,4 +220,4 @@ npm run test:unit
 
 - Element Plus
 - Vue.js
-- Flask
+- Flask```

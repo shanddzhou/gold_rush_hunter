@@ -2,23 +2,31 @@ import request from '@/utils/request'
 
 export function login(data) {
   return request({
-    url: '/login',
+    url: '/auth/login',
     method: 'post',
     data
   })
 }
 
+export function logout() {
+  return request({
+    url: '/auth/logout',
+    method: 'post'
+  })
+}
+
 export function register(data) {
   return request({
-    url: '/register',
+    url: '/auth/register',
     method: 'post',
-    data: {
-      username: data.username,
-      password: data.password,
-      email: data.email,
-      phone: data.phone,
-      invite_code: data.invite_code
-    }
+    data
+  })
+}
+
+export function getInfo() {
+  return request({
+    url: '/users/me',
+    method: 'get'
   })
 }
 
